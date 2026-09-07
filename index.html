@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — DARKWORMGPT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Inter", sans-serif;
+        }
+
+        body {
+            background: #0f0f10;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 320px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0,0,0,0.3);
+        }
+
+        .login-container h2 {
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .login-container p {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            font-size: 13px;
+            color: #ccc;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .input-group input:focus {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #0078ff, #00e0ff);
+            color: #fff;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .login-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .footer-text {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .footer-text a {
+            color: #00e0ff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .mockup-glow {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,208,255,0.3) 0%, transparent 70%);
+            filter: blur(60px);
+            z-index: -1;
+            animation: float 6s ease-in-out infinite alternate;
+        }
+
+        .mockup-glow:nth-child(1) {
+            top: 10%;
+            left: 15%;
+        }
+
+        .mockup-glow:nth-child(2) {
+            bottom: 10%;
+            right: 15%;
+        }
+
+        @keyframes float {
+            from {
+                transform: translateY(0px);
+            }
+            to {
+                transform: translateY(30px);
+            }
+        }
+
+        .error-message {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .success-message {
+            background: rgba(68, 255, 68, 0.2);
+            border: 1px solid #44ff44;
+            color: #44ff44;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mockup-glow"></div>
+    <div class="mockup-glow"></div>
+
+    <div class="login-container">
+        <h2 id="formTitle">Maligayang Pagbabalik</h2>
+        <p id="formSubtitle">
+            Mag-login sa iyong account upang magpatuloy
+        </p>
+
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+
+        <form id="authForm">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Ilagay ang username" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Ilagay ang password" required>
+            </div>
+            <button class="login-btn" type="submit" id="submitBtn">Mag-login</button>
+        </form>
+        <div class="footer-text">
+            <span id="toggleText">Wala pang account?</span> <a href="#" id="toggleLink">Mag-sign up ngayon</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import {
+            initializeApp
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import {
+            getDatabase,
+            ref,
+            get,
+            set,
+            child
+        } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDuQaj_Wq0E185EKjfP6ioLZZGXVYnSMug",
+            authDomain: "wormgptx.firebaseapp.com",
+            databaseURL: "https://wormgptx-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "wormgptx",
+            storageBucket: "wormgptx.firebasestorage.app",
+            messagingSenderId: "699515675996",
+            appId: "1:699515675996:web:7c7367ee05318c416c4d99",
+            measurementId: "G-1LWR54H8X2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        let isLoginMode = true;
+
+        const formTitle = document.getElementById('formTitle');
+        const formSubtitle = document.getElementById('formSubtitle');
+        const submitBtn = document.getElementById('submitBtn');
+        const toggleText = document.getElementById('toggleText');
+        const toggleLink = document.getElementById('toggleLink');
+        const authForm = document.getElementById('authForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+
+        toggleLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            isLoginMode = !isLoginMode;
+
+            if (isLoginMode) {
+                formTitle.textContent = 'Maligayang Pagbabalik';
+                formSubtitle.textContent = 'Mag-login sa iyong account upang magpatuloy';
+                submitBtn.textContent = 'Mag-login';
+                toggleText.textContent = 'Wala pang account?';
+                toggleLink.textContent = 'Mag-sign up ngayon';
+            } else {
+                formTitle.textContent = 'Gumawa ng Account';
+                formSubtitle.textContent = 'Mag-sign up upang magsimula';
+                submitBtn.textContent = 'Mag-sign up';
+                toggleText.textContent = 'May account na?';
+                toggleLink.textContent = 'Mag-login ngayon';
+            }
+
+            hideMessages();
+        });
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!username || !password) {
+                showError('Kailangan ang username at password!');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Nagpoproseso...';
+
+            try {
+                if (isLoginMode) {
+                    await handleLogin(username, password);
+                } else {
+                    await handleRegister(username, password);
+                }
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = isLoginMode ? 'Mag-login' : 'Mag-sign up';
+            }
+        });
+
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        async function handleLogin(username, password) {
+            const dbRef = ref(database);
+            const snapshot = await get(child(dbRef, 'UsersGPT'));
+
+            if (!snapshot.exists()) {
+                throw new Error('Hindi mahanap ang database!');
+            }
+
+            const users = snapshot.val();
+            let userFound = null;
+            let userId = null;
+
+            for (const [key, value] of Object.entries(users)) {
+                if (value.user === username && value.pass === password) {
+                    userFound = value;
+                    userId = key;
+                    break;
+                }
+            }
+
+            if (!userFound) {
+                throw new Error('Mali ang username o password!');
+            }
+
+            if (userFound.sessionId) {
+                const currentSessionId = localStorage.getItem('deviceSessionId') || generateSessionId();
+                
+                if (userFound.sessionId !== currentSessionId) {
+                    throw new Error('Ang account na ito ay aktibo sa ibang device! Mag-logout muna.');
+                }
+            }
+
+            const newSessionId = localStorage.getItem('deviceSessionId') || generateSessionId();
+            localStorage.setItem('deviceSessionId', newSessionId);
+
+            await set(ref(database, `UsersGPT/${userId}/sessionId`), newSessionId);
+
+            const sessionData = {
+                userId: userId,
+                username: userFound.user,
+                role: userFound.role,
+                loginTime: Date.now(),
+                sessionId: newSessionId
+            };
+
+            localStorage.setItem('userSession', JSON.stringify(sessionData));
+
+            if (userFound.role === 'user') {
+                const existingUsage = localStorage.getItem('usageData');
+                if (!existingUsage) {
+                    localStorage.setItem('usageData', JSON.stringify({
+                        requestCount: 0,
+                        phase: 1,
+                        cooldownUntil: null
+                    }));
+                }
+            }
+
+            showSuccess('Matagumpay na pag-login! Nagre-redirect...');
+
+            setTimeout(() => {
+                window.location.replace('homeai.html');
+            }, 1500);
+        }
+
+        async function handleRegister(username, password) {
+            const dbRef = ref(database);
+            const snapshot = await get(child(dbRef, 'UsersGPT'));
+
+            let users = {};
+            if (snapshot.exists()) {
+                users = snapshot.val();
+
+                for (const value of Object.values(users)) {
+                    if (value.user === username) {
+                        throw new Error('Ginagamit na ang username na ito!');
+                    }
+                }
+            }
+
+            const randomStr = Math.random().toString(36).substr(2, 9);
+            const userId = `Ok618_${randomStr}`;
+
+            await set(ref(database, `UsersGPT/${userId}`), {
+                user: username,
+                credits: 0,
+                pass: password,
+                role: 'user'
+            });
+
+            showSuccess('Matagumpay ang pag-sign up! Mag-login na.');
+
+            setTimeout(() => {
+                isLoginMode = true;
+                formTitle.textContent = 'Maligayang Pagbabalik';
+                formSubtitle.textContent = 'Mag-login sa iyong account upang magpatuloy';
+                submitBtn.textContent = 'Mag-login';
+                toggleText.textContent = 'Wala pang account?';
+                toggleLink.textContent = 'Mag-sign up ngayon';
+                usernameInput.value = username;
+                hideMessages();
+            }, 2000);
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+        }
+
+        function hideMessages() {
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+        }
+
+        let hasCheckedSession = false;
+        
+        window.addEventListener('load', () => {
+            if (hasCheckedSession) return;
+            hasCheckedSession = true;
+            
+            const session = localStorage.getItem('userSession');
+            if (session) {
+                window.location.replace('homeai.html');
+            }
+        });
+    </script>
+
+</body>
+</html>
