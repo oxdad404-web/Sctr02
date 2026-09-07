@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GPT Owner Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+            overflow-y: auto;
+        }
+
+        .container {
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 20px auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input::placeholder {
+            color: #555;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+
+        .alert.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .user-list {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-info p {
+            margin: 3px 0;
+            font-size: 13px;
+        }
+
+        .user-id {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .user-detail {
+            color: #888;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .delete-btn, .share-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            width: auto;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .delete-btn {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: none;
+        }
+
+        .share-btn {
+            background: rgba(37, 211, 102, 0.2);
+            border: 1px solid rgba(37, 211, 102, 0.3);
+            color: #25d366;
+        }
+
+        .share-btn:hover {
+            background: rgba(37, 211, 102, 0.3);
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 GPT Owner Manager</h1>
+        <p class="subtitle">Lei Owner GPT gamit ang Realtime Database</p>
+
+        <div id="alert" class="alert"></div>
+
+        <form id="addOwnerForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Halimbawa: putra" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="text" id="password" placeholder="Halimbawa: px1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Role</label>
+                <select id="role" required>
+                    <option value="owner">Owner</option>
+                    <option value="admin">Admin</option>
+                    <option value="user">User</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="expired">Petsa ng Expiry</label>
+                <input type="date" id="expired" required>
+            </div>
+
+            <button type="submit">➕ Magdagdag ng Owner</button>
+        </form>
+
+        <div class="user-list">
+            <h3 style="margin-bottom: 15px; color: #aaa;">Listahan ng mga User:</h3>
+            <div id="userList"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDuQaj_Wq0E185EKjfP6ioLZZGXVYnSMug",
+            authDomain: "wormgptx.firebaseapp.com",
+            databaseURL: "https://wormgptx-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "wormgptx",
+            storageBucket: "wormgptx.firebasestorage.app",
+            messagingSenderId: "699515675996",
+            appId: "1:699515675996:web:7c7367ee05318c416c4d99",
+            measurementId: "G-1LWR54H8X2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const usersRef = ref(db, 'UsersGPT');
+
+        function generateUserId() {
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            const prefix = Math.random().toString(36).substring(2, 4);
+            let id = prefix + '_';
+            for (let i = 0; i < 5; i++) {
+                id += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return id;
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type}`;
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+
+        function checkExpiredUsers(users) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            Object.keys(users).forEach(userId => {
+                const user = users[userId];
+                const expiredDate = new Date(user.expired);
+                expiredDate.setHours(0, 0, 0, 0);
+
+                if (expiredDate < today) {
+                    remove(ref(db, `UsersGPT/${userId}`));
+                    console.log(`User ${userId} ay tinanggal dahil expired`);
+                }
+            });
+        }
+
+        document.getElementById('addOwnerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const userId = generateUserId();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            const expired = document.getElementById('expired').value;
+
+            try {
+                await set(ref(db, `UsersGPT/${userId}`), {
+                    user: username,
+                    pass: password,
+                    role: role,
+                    expired: expired
+                });
+
+                showAlert(`✅ Matagumpay na naidagdag ang Owner na may ID: ${userId}`, 'success');
+                document.getElementById('addOwnerForm').reset();
+            } catch (error) {
+                showAlert('❌ Error: ' + error.message, 'error');
+            }
+        });
+
+        onValue(usersRef, (snapshot) => {
+            const users = snapshot.val();
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';
+
+            if (users) {
+                checkExpiredUsers(users);
+
+                Object.keys(users).forEach(userId => {
+                    const user = users[userId];
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'user-item';
+                    userDiv.innerHTML = `
+                        <div class="user-info">
+                            <p class="user-id">${userId}</p>
+                            <p class="user-detail">👤 ${user.user} | 🔑 ${user.pass}</p>
+                            <p class="user-detail">⭐ ${user.role} | 📅 Expiry: ${user.expired}</p>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="share-btn" onclick="shareToWhatsApp('${userId}', '${user.user}', '${user.pass}', '${user.role}', '${user.expired}')">📱 I-share</button>
+                            <button class="delete-btn" onclick="deleteUser('${userId}')">🗑️ Burahin</button>
+                        </div>
+                    `;
+                    userList.appendChild(userDiv);
+                });
+            } else {
+                userList.innerHTML = '<p style="color: #555; text-align: center;">Wala pang data ng user</p>';
+            }
+        });
+
+        window.deleteUser = async (userId) => {
+            if (confirm(`Sigurado ka bang gusto mong burahin ang user ${userId}?`)) {
+                try {
+                    await remove(ref(db, `UsersGPT/${userId}`));
+                    showAlert('✅ Matagumpay na nabura ang user!', 'success');
+                } catch (error) {
+                    showAlert('❌ Error: ' + error.message, 'error');
+                }
+            }
+        };
+
+        window.shareToWhatsApp = (userId, username, password, role, expired) => {
+            const message = `🔐 *Matagumpay na nagawa ang WormGPT Account*\n` +
+                          `Narito ang data ng account sa ibaba\n` +
+                          `━━━━━━━━━━━━━━━━━━\n` +
+                          `👤 *Username:* ${username}\n` +
+                          `🔑 *Password:* ${password}\n` +
+                          `🆔 *User ID:* ${userId}\n` +
+                          `⭐ *Role:* ${role}\n` +
+                          `📅 *Expiry:* ${expired}\n` +
+                          `━━━━━━━━━━━━━━━━━━\n\n` +
+                          `Itago ang impormasyon ng account na ito,\n` +
+                          `Ito ay ipapadala lamang ng isang beses at ang account ay para sa isang device lamang.!!\n` +
+                          `Creator : @Lei Sector\n` +
+                          `Facebook Lei-Official : https://facebook.com/https://www.facebook.com/profile.php?id=61582508531960`;
+                          
+            
+            const encodedMessage = encodeURIComponent(message);
+            const facebookUrl = `https://wa.me/?text=${encodedMessage}`;
+            window.open(facebookUrl, '_blank');
+        };
+
+        setInterval(() => {
+            onValue(usersRef, (snapshot) => {
+                const users = snapshot.val();
+                if (users) {
+                    checkExpiredUsers(users);
+                }
+            }, { onlyOnce: true });
+        }, 3600000);
+    </script>
+</body>
+</html>
